@@ -39,7 +39,7 @@ class Blockchain:
                 check_proof = True
             else:
                 new_proof += 1
-            return new_proof
+        return new_proof
 
     def hash(self, block):
         encoded_block = json.dumps(block, sort_keys = True).encode()
@@ -63,5 +63,62 @@ class Blockchain:
             block_index += 1
 
         return True
+
+# Mining the Blockchain
+
+app = Flask(__name__)
+app.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
+
+# initialaze a Blockchain
+blockchain = Blockchain()
+
+# Mining a new block
+@app.route("/mine_block", methods = ["GET"])
+
+def mine_block():
+    previous_block = blockchain.get_previous_block()
+    previous_proof = previous_block["proof"]
+    proof = blockchain.proof_of_work(previous_proof)
+    previous_hash = blockchain.hash(previous_block)
+
+    block = blockchain.create_block(proof, previous_hash)
+    response = {"message": "Congradulations!! you just mined a block!",
+                "index": block["index"],
+                "times_tamp": block["time_stamp"],
+                "proof": block["proof"],
+                "previous_hash": block["previous_hash"]}
+    return jsonify(response), 200
+
+# Getting the full Blockchain
+
+@app.route("/get_chain", methods = ["GET"])
+
+def get_chain():
+    response = {"chain" : blockchain.chain,
+                "length": len(blockchain.chain)}
+
+    return jsonify(response), 200
+
+@app.route("/is_valid", methods = ["GET"])
+
+#checking is the Blockchain is valid
+
+def is_valid():
+    is_valid = blockchain.is_chain_valid(blockchain.chain)
+
+    if is_valid:
+        response = {"message": "The Blockchain is Valid"}
+    else:
+        response = {"message": "Invalid Blockchain"}
+
+    return jsonify(response), 200
+
+
+
+
+#Running the app
+
+app.run(host = "0.0.0.0", port = "5000")
+
 
 
