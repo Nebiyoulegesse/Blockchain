@@ -1,24 +1,34 @@
-# Blockchain Framework
+# create a Cryptocurrency
 
 import datetime
 import json
 import hashlib
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
+import requests
+from uuid import uuid4
+from urllib.parse import urlparse
+
+
 
 # Building a Blockchain
 
 class Blockchain:
 
     # initiating  the Genesis Block
+    # adding list of transactions
     def __init__(self):
         self.chain = []
+        self.transactions = []
         self.create_block(proof = 1, previous_hash = "0")
 
     def create_block(self, proof, previous_hash):
         block = {"index": len(self.chain) + 1,
                  "time_stamp": str(datetime.datetime.now()),
                  "proof": proof,
-                 "previous_hash": previous_hash}
+                 "previous_hash": previous_hash,
+                 "transactions": self.transactions}
+
+        self.transactions = []
         self.chain.append(block)
         return block
 
@@ -64,6 +74,13 @@ class Blockchain:
 
         return True
 
+    def add_transaction(self, sender, receiver, amount):
+        self.transactions.append({"sender": sender,
+                                  "receiver": receiver,
+                                  "amount": amount})
+        previous_block = self.get_previous_block()
+        return previous_block["index"] + 1
+
 # Mining the Blockchain
 
 app = Flask(__name__)
@@ -94,7 +111,7 @@ def mine_block():
 @app.route("/get_chain", methods = ["GET"])
 
 def get_chain():
-    response = {"chain" : blockchain.chain,
+    response = {"chain": blockchain.chain,
                 "length": len(blockchain.chain)}
 
     return jsonify(response), 200
@@ -114,6 +131,7 @@ def is_valid():
     return jsonify(response), 200
 
 
+# Decentralizing the Blockchain
 
 
 #Running the app
