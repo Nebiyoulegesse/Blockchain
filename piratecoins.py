@@ -194,7 +194,41 @@ def add_transaction():
     response = {"message": f"This Transaction will be added to block {index}"}
 
     return jsonify(response), 201
+
+
 # Decentralizing the Blockchain
+# linking new nodes
+
+@app.route("/connect_node", methods = ["POST"])
+
+def connect_node():
+    json = request.get_json()
+    nodes = json.get("nodes")
+    if nodes is None:
+        return "No Node", 400
+
+    for node in nodes:
+        blockchain.add_node(node)
+
+    response = {"message": "All the nodes are now connected. The Piratecoin Blockchain contains the following nodes:",
+                "total_nodes": list(blockchain.nodes)}
+
+    return jsonify(response), 201
+
+# Replacing the chain by the longest chain if needed
+@app.route("/replace_chain", methods = ["GET"])
+def replace_chain():
+    is_chain_replaced = blockchain.replace_chain()
+
+    if is_chain_replaced:
+        response = {"message": "The chain was replaced by a longer chain ",
+                    "new_chain": blockchain.chain}
+    else:
+        response = {"message": "Current chain is largest and is live",
+                    "actual_chain": blockchain.chain}
+
+    return jsonify(response), 200
+
 
 #Running the app
 
